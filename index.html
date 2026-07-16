@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Narita → Ueno: Station Sign Flashcards</title>
+<style>
+  :root{
+    --navy:#0B2545;
+    --navy-2:#122f5c;
+    --white:#F7F9FC;
+    --vermillion:#E1523D;
+    --platform-yellow:#F2C14E;
+    --slate:#8DA9C4;
+    --line:#1c3d6e;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--navy);
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(226,163,61,0.06), transparent 40%),
+      radial-gradient(circle at 90% 85%, rgba(225,82,61,0.08), transparent 45%);
+    min-height:100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
+    color: var(--white);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding: 18px 14px 40px;
+  }
+
+  .header{
+    width:100%;
+    max-width:480px;
+    text-align:left;
+    margin-bottom:14px;
+  }
+  .eyebrow{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:11px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color: var(--platform-yellow);
+    font-weight:700;
+    margin-bottom:6px;
+  }
+  .eyebrow .dot{width:6px;height:6px;background:var(--vermillion);border-radius:50%;display:inline-block;}
+  h1{
+    font-size:22px;
+    margin:0 0 4px;
+    font-weight:800;
+    letter-spacing:-0.01em;
+  }
+  .sub{
+    font-size:13px;
+    color: var(--slate);
+    margin:0;
+    line-height:1.4;
+  }
+
+  .route{
+    width:100%;
+    max-width:480px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin:14px 0 18px;
+    font-size:12px;
+    color:var(--white);
+    background: var(--navy-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:9px 12px;
+  }
+  .route b{color:var(--platform-yellow); font-weight:700;}
+  .route .arrow{color:var(--vermillion); font-weight:900;}
+
+  /* category chips */
+  .chips{
+    width:100%;
+    max-width:480px;
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding-bottom:4px;
+    margin-bottom:18px;
+    scrollbar-width:none;
+  }
+  .chips::-webkit-scrollbar{display:none;}
+  .chip{
+    flex:0 0 auto;
+    padding:8px 14px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background: var(--navy-2);
+    color: var(--slate);
+    font-size:12.5px;
+    font-weight:600;
+    cursor:pointer;
+    transition: all .15s ease;
+    white-space:nowrap;
+  }
+  .chip.active{
+    background: var(--platform-yellow);
+    color: var(--navy);
+    border-color: var(--platform-yellow);
+  }
+
+  /* card */
+  .stage{
+    width:100%;
+    max-width:480px;
+    perspective: 1400px;
+  }
+  .card{
+    position:relative;
+    width:100%;
+    aspect-ratio: 4 / 3.1;
+    cursor:pointer;
+  }
+  .card-inner{
+    position:relative;
+    width:100%;
+    height:100%;
+    transition: transform 0.5s cubic-bezier(.4,.2,.2,1);
+    transform-style: preserve-3d;
+  }
+  .card.flipped .card-inner{ transform: rotateY(180deg); }
+
+  .face{
+    position:absolute;
+    inset:0;
+    backface-visibility:hidden;
+    border-radius:14px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding:20px;
+    border: 2px solid var(--line);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    overflow:hidden;
+  }
+  .face::before{
+    content:"";
+    position:absolute;
+    top:0; left:0; right:0;
+    height:8px;
+    background: repeating-linear-gradient(90deg, var(--platform-yellow) 0 18px, var(--navy) 18px 22px);
+    opacity:0.9;
+  }
+  .front{
+    background: linear-gradient(180deg, #0e2f5e, #0a2650);
+  }
+  .back{
+    background: linear-gradient(180deg, var(--vermillion), #b53b2b);
+    transform: rotateY(180deg);
+  }
+
+  .tag{
+    position:absolute;
+    top:16px; left:16px;
+    font-size:10px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color: var(--slate);
+    font-weight:700;
+  }
+  .back .tag{ color: rgba(255,255,255,0.75); }
+
+  .kanji{
+    font-size:64px;
+    font-weight:700;
+    line-height:1.1;
+    letter-spacing:0.02em;
+    margin-bottom:10px;
+  }
+  .tap-hint{
+    position:absolute;
+    bottom:14px;
+    font-size:10.5px;
+    color: var(--slate);
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+  }
+  .back .tap-hint{ color: rgba(255,255,255,0.7); }
+
+  .romaji{
+    font-size:20px;
+    font-weight:700;
+    margin-bottom:8px;
+  }
+  .meaning{
+    font-size:15px;
+    color: rgba(255,255,255,0.92);
+    max-width:320px;
+    line-height:1.45;
+  }
+  .context{
+    margin-top:12px;
+    font-size:12px;
+    color: rgba(255,255,255,0.75);
+    max-width:300px;
+    line-height:1.4;
+    border-top:1px solid rgba(255,255,255,0.25);
+    padding-top:10px;
+  }
+
+  /* controls */
+  .controls{
+    width:100%;
+    max-width:480px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-top:20px;
+    gap:10px;
+  }
+  .nav-btn{
+    background: var(--navy-2);
+    border:1px solid var(--line);
+    color: var(--white);
+    width:46px;
+    height:46px;
+    border-radius:50%;
+    font-size:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    user-select:none;
+  }
+  .nav-btn:active{ background: var(--line); }
+  .progress{
+    flex:1;
+    text-align:center;
+    font-size:13px;
+    color: var(--slate);
+    font-weight:600;
+    letter-spacing:0.02em;
+  }
+  .progress .num{ color: var(--platform-yellow); font-weight:800; }
+
+  .shuffle{
+    width:100%;
+    max-width:480px;
+    margin-top:12px;
+    text-align:center;
+  }
+  .shuffle button{
+    background:none;
+    border:none;
+    color: var(--slate);
+    font-size:12px;
+    text-decoration:underline;
+    cursor:pointer;
+    padding:6px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .card-inner{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="eyebrow"><span class="dot"></span>Beginner Station Signage</div>
+    <h1>Train Sign Flashcards</h1>
+    <p class="sub">Kanji you'll actually see getting from the airport to your hotel. Tap a card to flip it.</p>
+  </div>
+
+  <div class="route">
+    <b>成田空港</b> Narita <span class="arrow">→</span> <b>日暮里</b> Nippori <span class="arrow">→</span> <b>上野</b> Ueno
+  </div>
+
+  <div class="chips" id="chips"></div>
+
+  <div class="stage">
+    <div class="card" id="card">
+      <div class="card-inner">
+        <div class="face front">
+          <div class="tag" id="frontTag">Category</div>
+          <div class="kanji" id="kanjiText">出口</div>
+          <div class="tap-hint">Tap to reveal</div>
+        </div>
+        <div class="face back">
+          <div class="tag">Reading & Meaning</div>
+          <div class="romaji" id="romajiText">deguchi</div>
+          <div class="meaning" id="meaningText">Exit</div>
+          <div class="context" id="contextText"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="nav-btn" id="prevBtn">‹</div>
+    <div class="progress"><span class="num" id="curNum">1</span> / <span id="totNum">1</span></div>
+    <div class="nav-btn" id="nextBtn">›</div>
+  </div>
+
+  <div class="shuffle"><button id="shuffleBtn">Shuffle this set</button></div>
+
+<script>
+const DATA = {
+  stations: [
+    {k:"成田空港", r:"Narita Kūkō", m:"Narita Airport", c:"Where you land. Look for this on the Skyliner and Keisei platforms."},
+    {k:"日暮里", r:"Nippori", m:"Nippori Station", c:"Transfer point between Keisei line and JR — you may pass through here."},
+    {k:"上野", r:"Ueno", m:"Ueno Station", c:"Your stop — Nogha Hotel is in this neighborhood."},
+    {k:"東京", r:"Tōkyō", m:"Tokyo Station", c:"Central hub — useful if you connect to Shinkansen later."},
+    {k:"空港第2ビル", r:"Kūkō Dai-ni Biru", m:"Airport Terminal 2", c:"Narita's Terminal 2/3 station name — check this matches your terminal."}
+  ],
+  lines: [
+    {k:"京成本線", r:"Keisei Honsen", m:"Keisei Main Line", c:"Cheaper, slower option from Narita to Ueno (~70 min)."},
+    {k:"スカイライナー", r:"Sukairainā", m:"Skyliner", c:"Fastest train Narita → Ueno, about 45 min. Reserved seats."},
+    {k:"JR", r:"JR", m:"Japan Railways", c:"National rail operator — different ticket gates from Keisei."},
+    {k:"特急", r:"Tokkyū", m:"Limited Express", c:"Faster train type, sometimes needs an extra fare."},
+    {k:"普通", r:"Futsū", m:"Local (all-stops) train", c:"Slowest but no extra fee — good to recognize on boards."}
+  ],
+  wayfinding: [
+    {k:"出口", r:"Deguchi", m:"Exit", c:"Follow this to leave the station."},
+    {k:"入口", r:"Iriguchi", m:"Entrance", c:"Where you enter the station or platform area."},
+    {k:"乗り場", r:"Noriba", m:"Platform / boarding point", c:"Often paired with a number, e.g. 3番乗り場 = Platform 3."},
+    {k:"改札", r:"Kaisatsu", m:"Ticket gate", c:"Tap your IC card or insert your ticket here."},
+    {k:"のりかえ", r:"Norikae", m:"Transfer / connecting trains", c:"Follow these signs to switch train lines without exiting."},
+    {k:"案内所", r:"Annaijo", m:"Information counter", c:"Staffed desk if you need help in English."}
+  ],
+  tickets: [
+    {k:"切符", r:"Kippu", m:"Ticket", c:"A paper ticket, as opposed to an IC card."},
+    {k:"自動券売機", r:"Jidō Kenbaiki", m:"Automatic ticket machine", c:"Most have an English button in the corner."},
+    {k:"運賃", r:"Unchin", m:"Fare", c:"Shown on the fare chart above ticket machines."},
+    {k:"精算機", r:"Seisanki", m:"Fare adjustment machine", c:"Use if your IC card balance was too low to exit."},
+    {k:"ICカード", r:"IC Kādo", m:"IC card (Suica/Pasmo)", c:"Tap-to-ride card — easiest way to get around Tokyo."}
+  ]
+};
+
+const CATEGORIES = [
+  {id:"stations", label:"Stations"},
+  {id:"lines", label:"Train Lines"},
+  {id:"wayfinding", label:"Wayfinding"},
+  {id:"tickets", label:"Tickets"}
+];
+
+let currentCat = "stations";
+let deck = [...DATA[currentCat]];
+let idx = 0;
+let flipped = false;
+
+const chipsEl = document.getElementById('chips');
+const cardEl = document.getElementById('card');
+const kanjiText = document.getElementById('kanjiText');
+const romajiText = document.getElementById('romajiText');
+const meaningText = document.getElementById('meaningText');
+const contextText = document.getElementById('contextText');
+const frontTag = document.getElementById('frontTag');
+const curNum = document.getElementById('curNum');
+const totNum = document.getElementById('totNum');
+
+function renderChips(){
+  chipsEl.innerHTML = '';
+  CATEGORIES.forEach(cat=>{
+    const chip = document.createElement('div');
+    chip.className = 'chip' + (cat.id===currentCat ? ' active' : '');
+    chip.textContent = cat.label;
+    chip.onclick = ()=>{
+      currentCat = cat.id;
+      deck = [...DATA[currentCat]];
+      idx = 0;
+      flipped = false;
+      cardEl.classList.remove('flipped');
+      renderChips();
+      renderCard();
+    };
+    chipsEl.appendChild(chip);
+  });
+}
+
+function renderCard(){
+  const item = deck[idx];
+  const catLabel = CATEGORIES.find(c=>c.id===currentCat).label;
+  frontTag.textContent = catLabel;
+  kanjiText.textContent = item.k;
+  romajiText.textContent = item.r;
+  meaningText.textContent = item.m;
+  contextText.textContent = item.c;
+  curNum.textContent = idx + 1;
+  totNum.textContent = deck.length;
+}
+
+cardEl.addEventListener('click', ()=>{
+  flipped = !flipped;
+  cardEl.classList.toggle('flipped', flipped);
+});
+
+document.getElementById('prevBtn').addEventListener('click', (e)=>{
+  e.stopPropagation();
+  idx = (idx - 1 + deck.length) % deck.length;
+  flipped = false;
+  cardEl.classList.remove('flipped');
+  renderCard();
+});
+
+document.getElementById('nextBtn').addEventListener('click', (e)=>{
+  e.stopPropagation();
+  idx = (idx + 1) % deck.length;
+  flipped = false;
+  cardEl.classList.remove('flipped');
+  renderCard();
+});
+
+document.getElementById('shuffleBtn').addEventListener('click', (e)=>{
+  e.stopPropagation();
+  for(let i=deck.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [deck[i],deck[j]]=[deck[j],deck[i]];
+  }
+  idx = 0;
+  flipped = false;
+  cardEl.classList.remove('flipped');
+  renderCard();
+});
+
+renderChips();
+renderCard();
+</script>
+</body>
+</html>
